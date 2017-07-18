@@ -1,12 +1,18 @@
 ﻿<Page x:Class="MediaPlayer.Views.SettingsPage"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:local="using:MediaPlayer.Views"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d">
+        xmlns:viewModels="using:MediaPlayer.ViewModels"
+        xmlns:tools="using:MediaPlayer.Tools">
+
+    <Page.Resources>
+        <tools:MinutesFormatConverter x:Key="MinutesConverter" />
+        <tools:SecondsFormatConverter x:Key="SecondsConverter" />
+    </Page.Resources>
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        
         <StackPanel Orientation="Vertical" VerticalAlignment="Center">
             <TextBlock x:Uid="authenticationLabel" Text="Settings" FontSize="36"
                     Margin="4" TextAlignment="Center" />
@@ -14,19 +20,26 @@
             <TextBlock x:Name="ErrorMessage" Text="" FontSize="20" Margin="4"
                     Foreground="Red" TextAlignment="Center" />
 
-            <TextBlock x:Uid="screenIdLabel" Margin="0,20,0,10"
-                    TextWrapping="Wrap" Width="300" TextAlignment="Center"
-                    VerticalAlignment="Center" FontSize="16"
-                    Text="Enter Screen Id" />
+            <TextBlock x:Uid="screenIdLabel" Margin="0,20,0,10" TextWrapping="Wrap"
+                    Width="300" TextAlignment="Center" VerticalAlignment="Center"
+                    FontSize="16" Text="Enter Screen Id" />
 
-            <TextBox x:Name="ScreenIdTextBox" Margin="4" Width="300" />
+            <TextBox x:Name="ScreenIdTextBox" Margin="4" Width="300"
+                    Text="{Binding Settings.ScreenId, Mode=TwoWay}" />
 
-            <TextBlock x:Uid="calledUrlLabel" Margin="0,20,0,10"
-                    TextWrapping="Wrap" Width="300" TextAlignment="Center"
-                    VerticalAlignment="Center" FontSize="16"
-                    Text="Enter Called URL" />
+            <TextBlock x:Uid="calledUrlLabel" Margin="0,20,0,10" TextWrapping="Wrap"
+                    Width="300" TextAlignment="Center" VerticalAlignment="Center"
+                    FontSize="16" Text="Enter Called URL" />
 
-            <TextBox x:Name="CalledUrlTextBox" Margin="4" Width="300" />
+            <TextBox x:Name="CalledUrlTextBox" Margin="4" Width="300"
+                    Text="{Binding Settings.CalledURL, Mode=TwoWay}" />
+
+            <TextBlock x:Uid="securityKeyLabel" Margin="0,20,0,10" TextWrapping="Wrap"
+                       Width="300" TextAlignment="Center" VerticalAlignment="Center"
+                       FontSize="16" Text="Enter Called URL" />
+
+            <TextBox x:Name="SecurityKeyTextBox" Margin="4" Width="300"
+                    Text="{Binding Settings.SecurityKey, Mode=TwoWay}" />
 
             <Grid Width="300" Margin="0,20,0,0">
                 <Grid.ColumnDefinitions>
@@ -34,39 +47,40 @@
                     <ColumnDefinition Width="1*" />
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0" Orientation="Vertical"
-                        Margin="5,0,5,0" Height="Auto" Width="Auto">
+                <StackPanel Grid.Column="0" Orientation="Vertical" Margin="5,0,5,0"
+                        Height="Auto" Width="Auto">
                     <TextBlock x:Uid="cronUpdateLabel" Margin="0,0,0,10"
                             TextWrapping="Wrap" TextAlignment="Center"
                             VerticalAlignment="Center" FontSize="15"
                             Text="Cron Update Time" />
 
-                    <TextBox x:Name="CronUpdateTimeTextBox" InputScope="Number" />
+                    <TextBox x:Name="CronUpdateTimeTextBox" x:Uid="placeHolderMinutesUnit"
+                            Text="{Binding Settings.CronUpdateTime, Mode=TwoWay, Converter={StaticResource MinutesConverter}}" />
                 </StackPanel>
 
-                <StackPanel Grid.Column="1" Orientation="Vertical"
-                        Margin="5,0,5,0" Height="Auto" Width="Auto">
+                <StackPanel Grid.Column="1" Orientation="Vertical" Margin="5,0,5,0"
+                        Height="Auto" Width="Auto">
                     <TextBlock x:Uid="imagesDisplayTimeLabel" Margin="0,0,0,10"
                             TextWrapping="Wrap" TextAlignment="Center"
                             VerticalAlignment="Center" FontSize="15"
                             Text="Images Display Time" />
 
-                    <TextBox x:Name="ImagesDisplayTimeTextBox"
-                            InputScope="Number" />
+                    <TextBox x:Name="ImagesDisplayTimeTextBox" x:Uid="placeHolderSecondsUnit"
+                            Text="{Binding Settings.ImagesDisplayTime, Mode=TwoWay, Converter={StaticResource SecondsConverter}}" />
                 </StackPanel>
 
             </Grid>
 
-            <TextBlock x:Uid="defaultClipLabel" Margin="0,20,0,10"
-                    TextWrapping="Wrap" Width="300" TextAlignment="Center"
-                    VerticalAlignment="Center" FontSize="16"
-                    Text="Default Clip URL" />
+            <TextBlock x:Uid="defaultClipLabel" Margin="0,20,0,10" TextWrapping="Wrap"
+                    Width="300" TextAlignment="Center" VerticalAlignment="Center"
+                    FontSize="16" Text="Default Clip URL" />
 
-            <TextBox x:Name="DefaultClipTextBox" Margin="4" Width="300" />
+            <TextBox x:Name="DefaultClipTextBox" Margin="4" Width="300"
+                    Text="{Binding Settings.DefaultClipURL, Mode=TwoWay}" />
 
-            <Button x:Name="ValidateSettings" Content="Ok"
-                    Background="DodgerBlue" Foreground="White" Width="80"
-                    HorizontalAlignment="Center" Margin="0,20" />
+            <Button x:Uid="settingsSaveButton" x:Name="ValidateSettings" Content="Save"
+                    Background="DodgerBlue" Foreground="White" Width="120"
+                    HorizontalAlignment="Center" Margin="0,20" Tapped="OnSaveClicked" />
 
         </StackPanel>
     </Grid>

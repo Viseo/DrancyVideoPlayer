@@ -132,10 +132,28 @@
   <data name="imagesDisplayTimeLabel.Text" xml:space="preserve">
     <value>Temps d'affichage des images</value>
   </data>
+  <data name="minuteUnit" xml:space="preserve">
+    <value>minutes</value>
+  </data>
+  <data name="placeHolderMinutesUnit.PlaceholderText" xml:space="preserve">
+    <value>Valeur en minute</value>
+  </data>
+  <data name="placeHolderSecondsUnit.PlaceholderText" xml:space="preserve">
+    <value>Valeur en seconde</value>
+  </data>
   <data name="screenIdLabel.Text" xml:space="preserve">
     <value>Entrez l'identifiant de l'écran</value>
   </data>
+  <data name="secondUnit" xml:space="preserve">
+    <value>secondes</value>
+  </data>
+  <data name="securityKeyLabel.Text" xml:space="preserve">
+    <value>Entrez la clé de sécurité</value>
+  </data>
   <data name="securityLabel.Text" xml:space="preserve">
     <value>Entrez la clé de sécurité</value>
+  </data>
+  <data name="settingsSaveButton.Content" xml:space="preserve">
+    <value>Sauvegarder</value>
   </data>
 </root>

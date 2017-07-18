@@ -1,17 +1,24 @@
 ﻿using Windows.UI.Xaml.Controls;
-
-// The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
+using Windows.UI.Xaml.Input;
+using MediaPlayer.ViewModels;
 
 namespace MediaPlayer.Views
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
     public sealed partial class SettingsPage : Page
     {
+        private SettingsPageVM ViewModel { get; set; }
+
         public SettingsPage()
         {
             this.InitializeComponent();
+            this.ViewModel = new SettingsPageVM();
+            this.DataContext = this.ViewModel;
         }
+
+        private void OnSaveClicked(object sender, TappedRoutedEventArgs e)
+        {
+            this.ViewModel.SaveSettings();
+        }
+
     }
 }
