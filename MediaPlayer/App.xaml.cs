@@ -1,20 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
-using MediaPlayer.Views;
+using MediaPlayer.Managers;
 
 namespace MediaPlayer
 {
@@ -23,6 +15,8 @@ namespace MediaPlayer
     /// </summary>
     sealed partial class App : Application
     {
+        private DispatcherTimer _dispatcherTimer;
+
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
@@ -31,6 +25,16 @@ namespace MediaPlayer
         {
             this.InitializeComponent();
             this.Suspending += OnSuspending;
+            InitDependencies();
+            SetupTimerRetrievingPlaylist();
+        }
+
+        private void InitDependencies()
+        {
+            Dependencies.SettingsManager = new SettingsManager();
+            Dependencies.PlanningManager = new PlanningManager();
+            Dependencies.ContentManager = new ContentManager();
+            Dependencies.HttpRequestManager = new HttpRequestManager(Dependencies.SettingsManager.SettingsState.CalledURL);
         }
 
         /// <summary>
@@ -38,7 +42,7 @@ namespace MediaPlayer
         /// will be used such as when the application is launched to open a specific file.
         /// </summary>
         /// <param name="e">Details about the launch request and process.</param>
-        protected override void OnLaunched(LaunchActivatedEventArgs e)
+        protected override async void OnLaunched(LaunchActivatedEventArgs e)
         {
             Frame rootFrame = Window.Current.Content as Frame;
 
@@ -67,11 +71,56 @@ namespace MediaPlayer
                     // When the navigation stack isn't restored navigate to the first page,
                     // configuring the new page by passing required information as a navigation
                     // parameter
-                    rootFrame.Navigate(typeof(SettingsPage), e.Arguments);
+                    if (await DoesValidSettingsExist())
+                        rootFrame.Navigate(typeof(Views.MediaPlayer), e.Arguments);
+                    else
+                        rootFrame.Navigate(typeof(Views.SettingsPage), e.Arguments);
                 }
                 // Ensure the current window is active
                 Window.Current.Activate();
             }
+        }
+
+        private async Task<bool> DoesValidSettingsExist()
+        {
+            if (await Dependencies.SettingsManager.IsSettingsFileExist()
+                && Dependencies.SettingsManager.SettingsState.AreNumericFieldsValid()
+                && Dependencies.SettingsManager.SettingsState.AreNonNumericFieldsValid())
+                return true;
+            return false;
+        }
+
+        private void SetupTimerRetrievingPlaylist()
+        {
+            DoBackgroundWork();
+
+            _dispatcherTimer = new DispatcherTimer();
+            _dispatcherTimer.Tick += RetrievePlaylistTick;
+            _dispatcherTimer.Interval = new TimeSpan(0, Dependencies.SettingsManager.SettingsState.CronUpdateTime, 0);
+            _dispatcherTimer.Start();
+        }
+
+        private void RetrievePlaylistTick(object sender, object e)
+        {
+            DoBackgroundWork();
+        }
+
+        private async void DoBackgroundWork()
+        {
+
+            await Dependencies.PlanningManager
+                .RetrievePlaylist(Dependencies.SettingsManager.SettingsState.ScreenId
+                    , Dependencies.SettingsManager.SettingsState.SecurityKey
+                    , Dependencies.SettingsManager.SettingsState.DefaultClipURL
+                    , Dependencies.HttpRequestManager);
+
+            await Dependencies.ContentManager
+                .CheckIfPlaylistItemsAreDownloaded(Dependencies.PlanningManager.PlayListState.PlaylistItems);
+
+            Dependencies.ContentManager
+                .FillDownloadQueue(Dependencies.PlanningManager.PlayListState.PlaylistItems);
+
+            Dependencies.ContentManager.ManageDownloadQueue(Dependencies.HttpRequestManager);
         }
 
         /// <summary>

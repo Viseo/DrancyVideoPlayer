@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Windows.Storage;
+using Windows.Storage.Streams;
 using MediaPlayer.Models;
 using Newtonsoft.Json;
 
@@ -10,68 +11,86 @@ namespace MediaPlayer.Managers
 {
     public interface ISettingsManager
     {
+        Settings SettingsState { get; set; }
+        Task<bool> IsSettingsFileExist();
         Task<Settings> TryGetSettingsFile();
-        void CreateSettingsFile(Settings file);
+        void CreateSettingsFile();
+        Settings DeserializeFile(string stream);
     }
 
     public class SettingsManager : ISettingsManager
     {
-        private StorageFolder _localFolder;
         private const string FileName = "Settings.json";
+        private readonly StorageFolder _localFolder;
+
+        public Settings SettingsState { get; set; }
 
         public SettingsManager()
         {
             _localFolder = ApplicationData.Current.LocalFolder;
-            Debug.WriteLine(_localFolder.Path);
+            Initialize();
+        }
+
+        private async void Initialize()
+        {
+            await TryGetSettingsFile();
+        }
+
+        public async Task<bool> IsSettingsFileExist()
+        {
+            var item = await _localFolder.TryGetItemAsync(FileName);
+
+            if (item != null)
+                return true;
+            return false;
         }
 
         public async Task<Settings> TryGetSettingsFile()
         {
-            var item = await _localFolder.TryGetItemAsync(FileName);
-            if (item != null)
+            if (await IsSettingsFileExist())
             {
                 var settingsFile = await _localFolder.GetFileAsync(FileName);
-                return await DeserializeSettingsFile(settingsFile);
+                SettingsState = await ExctractStream(settingsFile);
+                return SettingsState;
             }
-            return new Settings();
+            SettingsState = new Settings();
+            return SettingsState;
         }
 
-        public async Task<Settings> DeserializeSettingsFile(IStorageFile file)
+        private async Task<Settings> ExctractStream(IRandomAccessStreamReference file)
+        {
+            var data = await file.OpenReadAsync();
+            using (StreamReader r = new StreamReader(data.AsStream()))
+                return DeserializeFile(r.ReadToEnd());
+        }
+
+        public Settings DeserializeFile(string stream)
         {
             try
             {
-                var data = await file.OpenReadAsync();
-                using (StreamReader r = new StreamReader(data.AsStream()))
-                {
-                    var content = r.ReadToEnd();
-                    return JsonConvert.DeserializeObject<Settings>(content);
-                }
+                var deserializedObj = JsonConvert.DeserializeObject<Settings>(stream);
+                return deserializedObj ?? new Settings();
             }
             catch (Exception e)
             {
-                Debug.WriteLine("SettingsManager : DeserializeSettingsFile error => " + e);
+                Debug.WriteLine(e);
                 return new Settings();
             }
+
         }
 
-        public async void CreateSettingsFile(Settings settings)
+        public async void CreateSettingsFile()
         {
-            try
-            {
-                var file = await _localFolder.CreateFileAsync(FileName, CreationCollisionOption.ReplaceExisting);
-                var data = await file.OpenStreamForWriteAsync();
+            var file = await _localFolder.CreateFileAsync(FileName, CreationCollisionOption.ReplaceExisting);
+            var data = await file.OpenStreamForWriteAsync();
 
-                using (StreamWriter r = new StreamWriter(data))
-                {
-                    var serelizedfile = JsonConvert.SerializeObject(settings);
-                    r.Write(serelizedfile);
-                }
-            }
-            catch (Exception e)
+            using (StreamWriter r = new StreamWriter(data))
             {
-                Debug.WriteLine("SettingsManager : CreateSettingsFile error => " + e);
+                var serelizedfile = JsonConvert.SerializeObject(SettingsState);
+                r.Write(serelizedfile);
             }
         }
+
 
     }
 }

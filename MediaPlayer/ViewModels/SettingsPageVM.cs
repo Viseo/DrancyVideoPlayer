@@ -1,11 +1,23 @@
-﻿using MediaPlayer.Managers;
+﻿using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using Windows.ApplicationModel.Resources;
+using MediaPlayer.Managers;
 using MediaPlayer.Models;
 
 namespace MediaPlayer.ViewModels
 {
     public class SettingsPageVM : NotifyPropertyChangedVM
     {
-        private ISettingsManager _settingsManager;
+        private readonly ISettingsManager _settingsManager;
+        private readonly ResourceLoader _stringLoader;
+
+        private string _errorMsg;
+        public string ErrorMsg
+        {
+            get { return _errorMsg; }
+            set { _errorMsg = value; OnPropertyChanged(); }
+        }
 
         private Settings _settings;
         public Settings Settings
@@ -14,20 +26,37 @@ namespace MediaPlayer.ViewModels
             set { _settings = value; OnPropertyChanged(); }
         }
 
-        public SettingsPageVM()
+        public SettingsPageVM(ISettingsManager manager)
         {
-            _settingsManager = new SettingsManager();
-            InitSettings();
+            _settingsManager = manager;
+            _stringLoader = new ResourceLoader();
+            Settings = _settingsManager.SettingsState;
         }
 
-        private async void InitSettings()
+        public async Task<bool> DoesSettingsExist()
         {
-            Settings = await _settingsManager.TryGetSettingsFile();
+            if (await _settingsManager.IsSettingsFileExist() && Settings.AreNonNumericFieldsValid())
+            {
+                if (!Settings.AreNumericFieldsValid())
+                    Settings.SetDefaultValue();
+                return true;
+            }
+            return false;
         }
 
-        public void SaveSettings()
+        public bool SaveSettings()
         {
-            _settingsManager.CreateSettingsFile(Settings);
+            ErrorMsg = "";
+            if (Settings.AreNonNumericFieldsValid())
+            {
+                if (!Settings.AreNumericFieldsValid())
+                    Settings.SetDefaultValue();
+                _settingsManager.SettingsState = Settings;
+                _settingsManager.CreateSettingsFile();
+                return true;
+            }
+            ErrorMsg = _stringLoader.GetString("errorMessageInvalidFields");
+            return false;
         }
 
     }

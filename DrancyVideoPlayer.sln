@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug + Test|Any CPU = Debug + Test|Any CPU
+		Debug + Test|ARM = Debug + Test|ARM
+		Debug + Test|x64 = Debug + Test|x64
+		Debug + Test|x86 = Debug + Test|x86
 		Debug|Any CPU = Debug|Any CPU
 		Debug|ARM = Debug|ARM
 		Debug|x64 = Debug|x64
@@ -19,6 +23,16 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{250CAA23-0594-4A75-B470-C3E9C233CB9E}.Debug + Test|Any CPU.ActiveCfg = Debug + Test|x86
+		{250CAA23-0594-4A75-B470-C3E9C233CB9E}.Debug + Test|ARM.ActiveCfg = Debug + Test|ARM
+		{250CAA23-0594-4A75-B470-C3E9C233CB9E}.Debug + Test|ARM.Build.0 = Debug + Test|ARM
+		{250CAA23-0594-4A75-B470-C3E9C233CB9E}.Debug + Test|ARM.Deploy.0 = Debug + Test|ARM
+		{250CAA23-0594-4A75-B470-C3E9C233CB9E}.Debug + Test|x64.ActiveCfg = Debug + Test|x64
+		{250CAA23-0594-4A75-B470-C3E9C233CB9E}.Debug + Test|x64.Build.0 = Debug + Test|x64
+		{250CAA23-0594-4A75-B470-C3E9C233CB9E}.Debug + Test|x64.Deploy.0 = Debug + Test|x64
+		{250CAA23-0594-4A75-B470-C3E9C233CB9E}.Debug + Test|x86.ActiveCfg = Debug + Test|x86
+		{250CAA23-0594-4A75-B470-C3E9C233CB9E}.Debug + Test|x86.Build.0 = Debug + Test|x86
+		{250CAA23-0594-4A75-B470-C3E9C233CB9E}.Debug + Test|x86.Deploy.0 = Debug + Test|x86
 		{250CAA23-0594-4A75-B470-C3E9C233CB9E}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{250CAA23-0594-4A75-B470-C3E9C233CB9E}.Debug|ARM.ActiveCfg = Debug|ARM
 		{250CAA23-0594-4A75-B470-C3E9C233CB9E}.Debug|ARM.Build.0 = Debug|ARM
@@ -39,6 +53,16 @@ Global
 		{250CAA23-0594-4A75-B470-C3E9C233CB9E}.Release|x86.ActiveCfg = Release|x86
 		{250CAA23-0594-4A75-B470-C3E9C233CB9E}.Release|x86.Build.0 = Release|x86
 		{250CAA23-0594-4A75-B470-C3E9C233CB9E}.Release|x86.Deploy.0 = Release|x86
+		{16E90419-284B-47C2-BC55-2757BFFB450A}.Debug + Test|Any CPU.ActiveCfg = Debug + Test|x86
+		{16E90419-284B-47C2-BC55-2757BFFB450A}.Debug + Test|ARM.ActiveCfg = Debug + Test|ARM
+		{16E90419-284B-47C2-BC55-2757BFFB450A}.Debug + Test|ARM.Build.0 = Debug + Test|ARM
+		{16E90419-284B-47C2-BC55-2757BFFB450A}.Debug + Test|ARM.Deploy.0 = Debug + Test|ARM
+		{16E90419-284B-47C2-BC55-2757BFFB450A}.Debug + Test|x64.ActiveCfg = Debug + Test|x64
+		{16E90419-284B-47C2-BC55-2757BFFB450A}.Debug + Test|x64.Build.0 = Debug + Test|x64
+		{16E90419-284B-47C2-BC55-2757BFFB450A}.Debug + Test|x64.Deploy.0 = Debug + Test|x64
+		{16E90419-284B-47C2-BC55-2757BFFB450A}.Debug + Test|x86.ActiveCfg = Debug + Test|x86
+		{16E90419-284B-47C2-BC55-2757BFFB450A}.Debug + Test|x86.Build.0 = Debug + Test|x86
+		{16E90419-284B-47C2-BC55-2757BFFB450A}.Debug + Test|x86.Deploy.0 = Debug + Test|x86
 		{16E90419-284B-47C2-BC55-2757BFFB450A}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{16E90419-284B-47C2-BC55-2757BFFB450A}.Debug|ARM.ActiveCfg = Debug|ARM
 		{16E90419-284B-47C2-BC55-2757BFFB450A}.Debug|ARM.Build.0 = Debug|ARM

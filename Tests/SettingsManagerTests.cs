@@ -1,11 +1,7 @@
-﻿using System;
-using System.IO;
-using Windows.Foundation;
-using Windows.Storage;
-using Windows.Storage.Streams;
+﻿using FluentAssertions;
 using MediaPlayer.Managers;
+using MediaPlayer.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 
 namespace Tests
 {
@@ -16,38 +12,67 @@ namespace Tests
 
         public SettingsManagerTests()
         {
-            _manager = new SettingsManager();
-        }
-
-        private Stream MockStreamFromString(string s)
-        {
-            MemoryStream stream = new MemoryStream();
-            StreamWriter writer = new StreamWriter(stream);
-            writer.Write(s);
-            writer.Flush();
-            stream.Position = 0;
-            return stream;
+            _manager = SettingsManager.Instance;
         }
 
         [TestMethod]
-        public void GetSettingsFileTest()
+        public void DeserializeValidFileTest()
         {
-            //var validJson = "{\"ScreenId\":\"55-444-888\",\"CalledURL\":www.fakeUrl.com,\"SecurityKey\":securityKey,\"DefaultClipURL\":www.fakeUrl2.com,\"CronUpdateTime\":5,\"ImagesDisplayTime\":50}";
-            //var invalidJson = "{\"ScreenId\":\"55-444-888\",\"CalledURL\":www.fakeUrl.com,\"SecurityKey\":securityKey,\"DefaultClipURL\":www.fakeUrl2.com,\"CronUpdateTime\":5,\"ImagesDisplayTime\":50}";
-            //var storageFileMock = new Mock<IStorageFile>();
-            //var mockedStream = new Mock<IRandomAccessStreamWithContentType>();
-            
-            //storageFileMock.Object.
+            var validJson = "{\"ScreenId\":\"55-444-888\",\"CalledURL\":\"www.fakeUrl.com\",\"SecurityKey\":\"securityKey\"," +
+                            "\"DefaultClipURL\":\"www.fakeUrl2.com\",\"CronUpdateTime\":\"5\",\"ImagesDisplayTime\":\"50\"}";
+            var settings = new Settings()
+            {
+                CronUpdateTime = 5,
+                ImagesDisplayTime = 50,
+                ScreenId = "55-444-888",
+                CalledURL = "www.fakeUrl.com",
+                SecurityKey = "securityKey",
+                DefaultClipURL = "www.fakeUrl2.com",
+            };
+            var returnedResult = _manager.DeserializeFile(validJson);
 
-
-            //mockedStream.SetupGet(x => x.AsStream()).Returns(MockStreamFromString(validJson));
-            //storageFileMock.SetupGet(file => file.OpenReadAsync()).Returns();
-
-
-
-            //storageFileMock.SetupGet(file => file.OpenReadAsync()).Returns();
-
-
+            returnedResult.ShouldBeEquivalentTo(settings);
+            Assert.AreEqual(returnedResult.AreNonNumericFieldsValid(), true);
+            Assert.AreEqual(returnedResult.AreNumericFieldsValid(), true);
         }
+
+        [TestMethod]
+        public void DeserializeInvalidValuesFileTest()
+        {
+            var invalidJson = "{\"ScreenId\":\"55-444-888\",\"CalledURL\":\"\",\"SecurityKey\":\"securityKey\"," +
+                              "\"DefaultClipURL\":\"www.fakeUrl2.com\",\"CronUpdateTime\":\"0\",\"ImagesDisplayTime\":\"50\"}";
+            var settings = new Settings()
+            {
+                CronUpdateTime = 0,
+                ImagesDisplayTime = 50,
+                ScreenId = "55-444-888",
+                CalledURL = "",
+                SecurityKey = "securityKey",
+                DefaultClipURL = "www.fakeUrl2.com",
+            };
+            var returnedResult = _manager.DeserializeFile(invalidJson);
+
+            returnedResult.ShouldBeEquivalentTo(settings);
+            Assert.AreEqual(returnedResult.AreNonNumericFieldsValid(), false);
+            Assert.AreEqual(returnedResult.AreNumericFieldsValid(), false);
+        }
+
+        [TestMethod]
+        public void DeserializeInvalidFileTest()
+        {
+            var invalidJson = "{reenId\":\"55-444-888\",\"CalledURL\":\"\",\"SecurityKey\":\"securityKey\"," +
+                              "\"DefaultClipURL\":\"www.fakeUrl2.com\",\"CronUpdateTime\":\"0\",\"ImagesDisplayTime\":\"50\"}";
+           
+            var returnedResult = _manager.DeserializeFile(invalidJson);
+
+            returnedResult.ShouldBeEquivalentTo(new Settings());
+            Assert.AreEqual(returnedResult.AreNonNumericFieldsValid(), false);
+            Assert.AreEqual(returnedResult.AreNumericFieldsValid(), false);
+        }
+
+
+
+
+
     }
 }

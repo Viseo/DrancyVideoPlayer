@@ -124,13 +124,16 @@
     <value>Entrez l'URL d'appel</value>
   </data>
   <data name="cronUpdateLabel.Text" xml:space="preserve">
-    <value>Delai d'actualisation des videos</value>
+    <value>Delai d'actualisation des videos (minutes)</value>
   </data>
   <data name="defaultClipLabel.Text" xml:space="preserve">
     <value>URL de la vidéo par défaut</value>
   </data>
+  <data name="errorMessageInvalidFields" xml:space="preserve">
+    <value>Un ou plusieurs champs ne sont pas valide(s)</value>
+  </data>
   <data name="imagesDisplayTimeLabel.Text" xml:space="preserve">
-    <value>Temps d'affichage des images</value>
+    <value>Temps d'affichage des images (secondes)</value>
   </data>
   <data name="minuteUnit" xml:space="preserve">
     <value>minutes</value>
