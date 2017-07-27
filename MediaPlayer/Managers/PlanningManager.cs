@@ -15,6 +15,9 @@ namespace MediaPlayer.Managers
 
         Task RetrievePlaylist(string screenId, string securityKey
             , string defaultClipUrl, IHttpRequestManager httpRequestManager);
+
+        List<PlaylistItem> SetOldFlagToPreviousPlaylistItems(List<PlaylistItem> oldPlaylist
+            , List<PlaylistItem> newPlaylist);
     }
 
     public class PlanningManager : IPlanningManager
@@ -54,20 +57,36 @@ namespace MediaPlayer.Managers
                 response["Groups"].Children().ToList()
                     .ForEach(grp => grp["Items"].ToList()
                     .ForEach(it => playlist.Add(JsonConvert.DeserializeObject<PlaylistItem>(it.ToString()))));
-                PlayListState.PlaylistItems = playlist;
+                PlayListState.PlaylistItems = SetOldFlagToPreviousPlaylistItems(PlayListState.PlaylistItems, playlist);
             }
             catch (Exception e)
             {
                 Debug.WriteLine("Error on Method DeserializeResponseAsPlaylist => {0}", e);
-                var defaultPlaylist = new List<PlaylistItem>();
-                defaultPlaylist.Add(new PlaylistItem()
+                var defaultPlaylist = new List<PlaylistItem>
                 {
-                    AccessPath = defaultClipUrl,
-                    Id = "_settings.SettingsState.DefaultClipURL",
-                    IsDowloaded = false
-                });
+                    new PlaylistItem()
+                    {
+                        AccessPath = defaultClipUrl,
+                        Id = "_settings.SettingsState.DefaultClipURL",
+                        IsDowloaded = false
+                    }
+                };
                 PlayListState.PlaylistItems = defaultPlaylist;
             }
+        }
+
+        public List<PlaylistItem> SetOldFlagToPreviousPlaylistItems(List<PlaylistItem> oldPlaylist, List<PlaylistItem> newPlaylist)
+        {
+            var oldIds = oldPlaylist.Select(item => item.Id).ToList();
+            var newIds = newPlaylist.Select(item => item.Id).ToList();
+            var isSamePlaylist = oldIds.SequenceEqual(newIds);
+
+            if (!isSamePlaylist)
+            {
+                oldPlaylist.ForEach(item => item.IsFromPreviousPlaylist = true);
+                return oldPlaylist.Concat(newPlaylist).ToList();
+            }
+            return newPlaylist;
         }
 
 

@@ -32,8 +32,8 @@ namespace MediaPlayer.Views
 
         private void MediaPlayerNavigationButtonClicked(object sender, RoutedEventArgs e)
         {
-            if (this.Frame.CanGoBack)
-                this.Frame.GoBack();
+            //if (this.Frame.CanGoBack)
+            //    this.Frame.GoBack();
             this.Frame.Navigate(typeof(MediaPlayer));
         }
     }

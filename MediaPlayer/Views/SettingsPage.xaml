@@ -9,13 +9,13 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Rectangle x:Name="BackgroundElement" />
-        <Grid Grid.Row="0">
+        <Grid Grid.Row="0" HorizontalAlignment="Left" Width="41">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <Button x:Name="mediaPlayerButton" Grid.Column="1"
-                    Foreground="White" Click="MediaPlayerNavigationButtonClicked">
+            <Button x:Name="mediaPlayerButton" Grid.Column="1" Foreground="White"
+                    Click="MediaPlayerNavigationButtonClicked">
                 <SymbolIcon Symbol="Play" />
                 <Button.Background>
                     <SolidColorBrush Color="{ThemeResource SystemAccentColor}" />
@@ -23,88 +23,95 @@
             </Button>
         </Grid>
 
-        <Grid Grid.Row="1" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid Grid.Row="1"
+                Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+            <ScrollViewer>
 
-            <StackPanel Orientation="Vertical" VerticalAlignment="Center">
-                <TextBlock x:Uid="authenticationLabel" Text="Settings" FontSize="36"
-                           Margin="4" TextAlignment="Center" />
+                <StackPanel Orientation="Vertical" VerticalAlignment="Center">
+                    <TextBlock x:Uid="authenticationLabel" Text="Settings" FontSize="36"
+                            Margin="4" TextAlignment="Center" />
 
-                <TextBlock x:Name="ErrorMessage"
-                           Text="{x:Bind ViewModel.ErrorMsg, Mode=TwoWay}" FontSize="20"
-                           Margin="4" Foreground="Red" TextAlignment="Center" />
+                    <TextBlock x:Name="ErrorMessage"
+                            Text="{Binding ErrorMsg, Mode=TwoWay}" FontSize="20"
+                            Margin="4" Foreground="Red" TextAlignment="Center" />
 
-                <TextBlock x:Uid="screenIdLabel" Margin="0,20,0,10" TextWrapping="Wrap"
-                           Width="300" TextAlignment="Center" VerticalAlignment="Center"
-                           FontSize="16" Text="Enter Screen Id" />
+                    <TextBlock x:Uid="screenIdLabel" Margin="0,20,0,10"
+                            TextWrapping="Wrap" Width="300" TextAlignment="Center"
+                            VerticalAlignment="Center" FontSize="16"
+                            Text="Enter Screen Id" />
 
-                <TextBox x:Name="ScreenIdTextBox" Margin="4" Width="400"
-                         Text="{x:Bind ViewModel.Settings.ScreenId, Mode=TwoWay}" />
+                    <TextBox x:Name="ScreenIdTextBox" Margin="4" Width="400"
+                            Text="{Binding Settings.ScreenId, Mode=TwoWay}" />
 
-                <TextBlock x:Uid="calledUrlLabel" Margin="0,20,0,10" TextWrapping="Wrap"
-                           Width="300" TextAlignment="Center" VerticalAlignment="Center"
-                           FontSize="16" Text="Enter Called URL" />
+                    <TextBlock x:Uid="calledUrlLabel" Margin="0,20,0,10"
+                            TextWrapping="Wrap" Width="300" TextAlignment="Center"
+                            VerticalAlignment="Center" FontSize="16"
+                            Text="Enter Called URL" />
 
-                <TextBox x:Name="CalledUrlTextBox" Margin="4" Width="400"
-                         Text="{x:Bind ViewModel.Settings.CalledURL, Mode=TwoWay}" />
+                    <TextBox x:Name="CalledUrlTextBox" Margin="4" Width="400"
+                            Text="{Binding Settings.CalledURL, Mode=TwoWay}" />
 
-                <TextBlock x:Uid="securityKeyLabel" Margin="0,20,0,10" TextWrapping="Wrap"
-                           Width="300" TextAlignment="Center" VerticalAlignment="Center"
-                           FontSize="16" Text="Enter Called URL" />
+                    <TextBlock x:Uid="securityKeyLabel" Margin="0,20,0,10"
+                            TextWrapping="Wrap" Width="300" TextAlignment="Center"
+                            VerticalAlignment="Center" FontSize="16"
+                            Text="Enter Called URL" />
 
-                <TextBox x:Name="SecurityKeyTextBox" Margin="4" Width="400"
-                         Text="{x:Bind ViewModel.Settings.SecurityKey, Mode=TwoWay}" />
+                    <TextBox x:Name="SecurityKeyTextBox" Margin="4" Width="400"
+                            Text="{Binding Settings.SecurityKey, Mode=TwoWay}" />
 
-                <Grid Width="400" Margin="0,20,0,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="1*" />
-                        <ColumnDefinition Width="1*" />
-                    </Grid.ColumnDefinitions>
+                    <Grid Width="400" Margin="0,20,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="1*" />
+                        </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0" Orientation="Vertical" Margin="5,0,5,0"
-                                Height="Auto" Width="Auto">
+                        <StackPanel Grid.Column="0" Orientation="Vertical"
+                                Margin="5,0,5,0" Height="Auto" Width="Auto">
 
-                        <TextBlock x:Uid="cronUpdateLabel" Margin="0,0,0,10"
-                                   TextWrapping="Wrap" TextAlignment="Center"
-                                   VerticalAlignment="Center" FontSize="15"
-                                   Text="Cron Update Time" />
+                            <TextBlock x:Uid="cronUpdateLabel" Margin="0,0,0,10"
+                                    TextWrapping="Wrap" TextAlignment="Center"
+                                    VerticalAlignment="Center" FontSize="15"
+                                    Text="Cron Update Time" />
 
-                        <TextBox x:Name="CronUpdateTimeTextBox"
-                                 x:Uid="placeHolderMinutesUnit"
-                                 Text="{Binding ViewModel.Settings.CronUpdateTime, Mode=TwoWay}" />
-                    </StackPanel>
+                            <TextBox x:Name="CronUpdateTimeTextBox"
+                                    x:Uid="placeHolderMinutesUnit"
+                                    Text="{Binding Settings.CronUpdateTime, Mode=TwoWay}" />
+                        </StackPanel>
 
-                    <StackPanel Grid.Column="1" Orientation="Vertical" Margin="5,0,5,0"
-                                Height="Auto" Width="Auto">
+                        <StackPanel Grid.Column="1" Orientation="Vertical"
+                                Margin="5,0,5,0" Height="Auto" Width="Auto">
 
-                        <TextBlock x:Uid="imagesDisplayTimeLabel" Margin="0,0,0,10"
-                                   TextWrapping="Wrap" TextAlignment="Center"
-                                   VerticalAlignment="Center" FontSize="15"
-                                   Text="Images Display Time" />
+                            <TextBlock x:Uid="imagesDisplayTimeLabel" Margin="0,0,0,10"
+                                    TextWrapping="Wrap" TextAlignment="Center"
+                                    VerticalAlignment="Center" FontSize="15"
+                                    Text="Images Display Time" />
 
-                        <TextBox x:Name="ImagesDisplayTimeTextBox"
-                                 x:Uid="placeHolderSecondsUnit"
-                                 Text="{Binding ViewModel.Settings.ImagesDisplayTime, Mode=TwoWay}" />
-                    </StackPanel>
+                            <TextBox x:Name="ImagesDisplayTimeTextBox"
+                                    x:Uid="placeHolderSecondsUnit"
+                                    Text="{Binding Settings.ImagesDisplayTime, Mode=TwoWay}" />
+                        </StackPanel>
 
-                </Grid>
+                    </Grid>
 
-                <TextBlock x:Uid="defaultClipLabel" Margin="0,20,0,10" TextWrapping="Wrap"
-                           Width="300" TextAlignment="Center" VerticalAlignment="Center"
-                           FontSize="16" Text="Default Clip URL" />
+                    <TextBlock x:Uid="defaultClipLabel" Margin="0,20,0,10"
+                            TextWrapping="Wrap" Width="300" TextAlignment="Center"
+                            VerticalAlignment="Center" FontSize="16"
+                            Text="Default Clip URL" />
 
-                <TextBox x:Name="DefaultClipTextBox" Margin="4" Width="400"
-                         Text="{x:Bind ViewModel.Settings.DefaultClipURL, Mode=TwoWay}" />
+                    <TextBox x:Name="DefaultClipTextBox" Margin="4" Width="400"
+                            Text="{Binding Settings.DefaultClipURL, Mode=TwoWay}" />
 
-                <Button x:Uid="settingsSaveButton" x:Name="ValidateSettings"
-                        Content="Save" Background="DodgerBlue" Foreground="White"
-                        Width="150" HorizontalAlignment="Center" Margin="0,20"
-                        Tapped="OnSaveClicked" />
+                    <Button x:Uid="settingsSaveButton" x:Name="ValidateSettings"
+                            Content="Save" Background="DodgerBlue" Foreground="White"
+                            Width="150" HorizontalAlignment="Center" Margin="0,20"
+                            Tapped="OnSaveClicked" />
 
-            </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
         </Grid>
 
     </Grid>
-    
-    
-    
+
+
+
 </Page>

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d">
 
-    <Grid x:Name="TitleBar">
+    <Grid x:Name="TitleBar" Background="Black">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -27,9 +27,9 @@
 
         <MediaPlayerElement x:Name="mediaPlayer" Width="Auto" AutoPlay="True"
                 AreTransportControlsEnabled="True" Grid.Row="1"
-                Source="https://drancyvideos.blob.core.windows.net/videos/BA%20-%20Le%20magicien%20d'Oz.mp4" />
-
-        <FlipView x:Name="imagesView" Grid.Row="1" Visibility="Collapsed" />
+                />
+         
+        <Image x:Name="imageView" Width="Auto" Grid.Row="1" Visibility="Collapsed"/>
 
     </Grid>
 

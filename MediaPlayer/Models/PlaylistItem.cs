@@ -11,5 +11,7 @@ namespace MediaPlayer.Models
         public string AccessPath { get; set; }
 
         public bool IsDowloaded { get; set; }
+
+        public bool IsFromPreviousPlaylist { get; set; }
     }
 }

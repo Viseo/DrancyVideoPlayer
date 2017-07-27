@@ -12,7 +12,7 @@ namespace Tests
 
         public SettingsManagerTests()
         {
-            _manager = SettingsManager.Instance;
+            _manager = new SettingsManager();
         }
 
         [TestMethod]

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
@@ -10,47 +11,43 @@ using MediaPlayer.Managers;
 
 namespace MediaPlayer
 {
-    /// <summary>
-    /// Provides application-specific behavior to supplement the default Application class.
-    /// </summary>
+
     sealed partial class App : Application
     {
         private DispatcherTimer _dispatcherTimer;
+        private SettingsManager settingsManager;
+        private PlanningManager planningManager;
+        private ContentManager contentManager;
+        private HttpRequestManager httpRequestManager;
 
-        /// <summary>
-        /// Initializes the singleton application object.  This is the first line of authored code
-        /// executed, and as such is the logical equivalent of main() or WinMain().
-        /// </summary>
         public App()
         {
             this.InitializeComponent();
             this.Suspending += OnSuspending;
+            SetFullScreenModeOnLaunch();
             InitDependencies();
-            SetupTimerRetrievingPlaylist();
+            LaunchBackgroundTasks();
+        }
+
+        private void SetFullScreenModeOnLaunch()
+        {
+            ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.FullScreen;
         }
 
         private void InitDependencies()
         {
-            Dependencies.SettingsManager = new SettingsManager();
-            Dependencies.PlanningManager = new PlanningManager();
-            Dependencies.ContentManager = new ContentManager();
-            Dependencies.HttpRequestManager = new HttpRequestManager(Dependencies.SettingsManager.SettingsState.CalledURL);
+            Dependencies.SettingsManager = settingsManager = new SettingsManager();
+            Dependencies.PlanningManager = planningManager = new PlanningManager();
+            Dependencies.ContentManager = contentManager = new ContentManager();
+            Dependencies.HttpRequestManager = httpRequestManager = new HttpRequestManager(Dependencies.SettingsManager.SettingsState.CalledURL);
         }
 
-        /// <summary>
-        /// Invoked when the application is launched normally by the end user.  Other entry points
-        /// will be used such as when the application is launched to open a specific file.
-        /// </summary>
-        /// <param name="e">Details about the launch request and process.</param>
-        protected override async void OnLaunched(LaunchActivatedEventArgs e)
+        protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
             Frame rootFrame = Window.Current.Content as Frame;
 
-            // Do not repeat app initialization when the Window already has content,
-            // just ensure that the window is active
             if (rootFrame == null)
             {
-                // Create a Frame to act as the navigation context and navigate to the first page
                 rootFrame = new Frame();
 
                 rootFrame.NavigationFailed += OnNavigationFailed;
@@ -60,43 +57,61 @@ namespace MediaPlayer
                     //TODO: Load state from previously suspended application
                 }
 
-                // Place the frame in the current Window
                 Window.Current.Content = rootFrame;
             }
 
             if (e.PrelaunchActivated == false)
             {
-                if (rootFrame.Content == null)
-                {
-                    // When the navigation stack isn't restored navigate to the first page,
-                    // configuring the new page by passing required information as a navigation
-                    // parameter
-                    if (await DoesValidSettingsExist())
-                        rootFrame.Navigate(typeof(Views.MediaPlayer), e.Arguments);
-                    else
-                        rootFrame.Navigate(typeof(Views.SettingsPage), e.Arguments);
-                }
-                // Ensure the current window is active
+                GetFirstFrameToDisplay(rootFrame, e);
                 Window.Current.Activate();
             }
         }
 
+        private async void GetFirstFrameToDisplay(Frame rootFrame, LaunchActivatedEventArgs e)
+        {
+            if (rootFrame.Content == null)
+            {
+                if (await DoesValidSettingsExist())
+                    rootFrame.Navigate(typeof(Views.MediaPlayer), e.Arguments);
+                else
+                    rootFrame.Navigate(typeof(Views.SettingsPage), e.Arguments);
+            }
+        }
+
+        private Task CleanTmpFolder()
+        {
+            return contentManager.CleanTemporaryFolder();
+        }
+
         private async Task<bool> DoesValidSettingsExist()
         {
-            if (await Dependencies.SettingsManager.IsSettingsFileExist()
-                && Dependencies.SettingsManager.SettingsState.AreNumericFieldsValid()
-                && Dependencies.SettingsManager.SettingsState.AreNonNumericFieldsValid())
+            if (await settingsManager.IsSettingsFileExist()
+                && settingsManager.SettingsState.AreNumericFieldsValid()
+                && settingsManager.SettingsState.AreNonNumericFieldsValid())
                 return true;
             return false;
         }
 
+        private async void LaunchBackgroundTasks()
+        {
+            try
+            {
+                await CleanTmpFolder();
+                await DoBackgroundWork();
+                contentManager.ManageDownloadQueue(httpRequestManager);
+                SetupTimerRetrievingPlaylist();
+            }
+            catch (Exception ex)
+            {
+                //todo error handling
+            }
+        }
+
         private void SetupTimerRetrievingPlaylist()
         {
-            DoBackgroundWork();
-
             _dispatcherTimer = new DispatcherTimer();
             _dispatcherTimer.Tick += RetrievePlaylistTick;
-            _dispatcherTimer.Interval = new TimeSpan(0, Dependencies.SettingsManager.SettingsState.CronUpdateTime, 0);
+            _dispatcherTimer.Interval = new TimeSpan(0, settingsManager.SettingsState.CronUpdateTime, 0);
             _dispatcherTimer.Start();
         }
 
@@ -105,41 +120,36 @@ namespace MediaPlayer
             DoBackgroundWork();
         }
 
-        private async void DoBackgroundWork()
+        private async Task DoBackgroundWork()
         {
+            try
+            {
+                var settings = settingsManager.SettingsState;
+                await planningManager
+                    .RetrievePlaylist(settings.ScreenId
+                        , settings.SecurityKey
+                        , settings.DefaultClipURL
+                        , httpRequestManager);
 
-            await Dependencies.PlanningManager
-                .RetrievePlaylist(Dependencies.SettingsManager.SettingsState.ScreenId
-                    , Dependencies.SettingsManager.SettingsState.SecurityKey
-                    , Dependencies.SettingsManager.SettingsState.DefaultClipURL
-                    , Dependencies.HttpRequestManager);
+                await contentManager.CheckIfPlaylistItemsAreDownloaded(planningManager.PlayListState.PlaylistItems);
 
-            await Dependencies.ContentManager
-                .CheckIfPlaylistItemsAreDownloaded(Dependencies.PlanningManager.PlayListState.PlaylistItems);
+                await contentManager.FillDeletionQueue(planningManager.PlayListState.PlaylistItems);
 
-            Dependencies.ContentManager
-                .FillDownloadQueue(Dependencies.PlanningManager.PlayListState.PlaylistItems);
-
-            Dependencies.ContentManager.ManageDownloadQueue(Dependencies.HttpRequestManager);
+                contentManager.FillDownloadQueue(planningManager.PlayListState.PlaylistItems);
+            }
+            catch (Exception)
+            {
+                //todo error handling
+            }
         }
 
-        /// <summary>
-        /// Invoked when Navigation to a certain page fails
-        /// </summary>
-        /// <param name="sender">The Frame which failed navigation</param>
-        /// <param name="e">Details about the navigation failure</param>
+
         void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
         {
             throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
         }
 
-        /// <summary>
-        /// Invoked when application execution is being suspended.  Application state is saved
-        /// without knowing whether the application will be terminated or resumed with the contents
-        /// of memory still intact.
-        /// </summary>
-        /// <param name="sender">The source of the suspend request.</param>
-        /// <param name="e">Details about the suspend request.</param>
+
         private void OnSuspending(object sender, SuspendingEventArgs e)
         {
             var deferral = e.SuspendingOperation.GetDeferral();

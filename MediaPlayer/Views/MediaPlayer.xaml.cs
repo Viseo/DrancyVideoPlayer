@@ -15,9 +15,10 @@ namespace MediaPlayer.Views
         public MediaPlayer()
         {
             this.InitializeComponent();
-            this.ViewModel = new MediaPlayerVM(mediaPlayer, imagesView);
+            this.ViewModel = new MediaPlayerVM(mediaPlayer, imageView);
             this.DataContext = ViewModel;  
             this.CustomizeTitleBar();
+            TurnOnFullScreenMode();
         }
 
         protected override async void OnNavigatingFrom(NavigatingCancelEventArgs e)
@@ -27,6 +28,11 @@ namespace MediaPlayer.Views
             {
                 mediaPlayer.MediaPlayer.Dispose();
             });
+        }
+
+        private void TurnOnFullScreenMode()
+        {
+            mediaPlayer.IsFullWindow = true;
         }
 
         private void CustomizeTitleBar()

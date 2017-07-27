@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Net.Http;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
-using Windows.Networking.BackgroundTransfer;
 using Windows.Storage;
 using Newtonsoft.Json;
 
@@ -12,14 +11,17 @@ namespace MediaPlayer.Managers
     public interface IHttpRequestManager
     {
         Task<T> Get<T>(string route);
-        Task DownloadContent(string route, string fileName);
         string GenerateUriWithParams(string route, Dictionary<string, string> parameters);
+        Task DownloadContent(string route, string fileName);
+        event EventHandler ContentDownloaded;
     }
 
     public class HttpRequestManager : IHttpRequestManager
     {
         private readonly string _apiUrl;
         private readonly HttpClient _httpClient;
+
+        public event EventHandler ContentDownloaded;
 
         public HttpRequestManager(string apiUrl)
         {
@@ -49,38 +51,25 @@ namespace MediaPlayer.Managers
             var result = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<T>(result);
         }
-
+        
         public async Task DownloadContent(string route, string fileName)
         {
-            try
-            {
-                var source = new Uri(route);            
-                var destination = await ApplicationData.Current.TemporaryFolder
-                    .CreateFileAsync(fileName, CreationCollisionOption.ReplaceExisting);
-                var downloader = new BackgroundDownloader();
-                var download = downloader.CreateDownload(source, destination);
+            var uri = new Uri(route);
 
-                await download.StartAsync();
+            var storageFile = await ApplicationData.Current.TemporaryFolder
+                .CreateFileAsync(fileName, CreationCollisionOption.ReplaceExisting);
 
-                var file = await ApplicationData.Current.TemporaryFolder.GetFileAsync(fileName);
+            var mediaBytes = await new HttpClient().GetByteArrayAsync(uri);
 
-                await file.MoveAsync(ApplicationData.Current.LocalFolder);
-            }
-            catch (TaskCanceledException tce)
-            {
-                Debug.WriteLine("Download Cancelled {0}", tce);
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine("Download Error {0}", e);
-                var item = await ApplicationData.Current.TemporaryFolder.TryGetItemAsync(fileName);
-                if (item != null)
-                {
-                    var file = await ApplicationData.Current.TemporaryFolder.GetFileAsync(fileName);
-                    await file.DeleteAsync(StorageDeleteOption.PermanentDelete);
-                }
-            }
+            var buffer = mediaBytes.AsBuffer();
+
+            await FileIO.WriteBufferAsync(storageFile, buffer);
+
+            var file = await ApplicationData.Current.TemporaryFolder.GetFileAsync(fileName);
+
+            await file.MoveAsync(ApplicationData.Current.LocalFolder);
+
+            ContentDownloaded?.Invoke(null, new EventArgs());
         }
-
     }
 }
