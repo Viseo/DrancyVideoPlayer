@@ -10,6 +10,8 @@ using Windows.Media.Playback;
 using Windows.Storage;
 using Windows.Storage.Streams;
 using Windows.UI.Core;
+using Windows.UI.ViewManagement;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Imaging;
 
@@ -18,9 +20,11 @@ namespace MediaPlayer.ViewModels
     public class MediaPlayerVM : NotifyPropertyChangedVM
     {
         private bool _newItemsDownloaded;
+        private DispatcherTimer _dispatcherTimer;
 
         private IStorageFile _currentSource;
         private MediaPlaybackList _playlist;
+        private List<StorageFile> _imagePlaylist;
 
         private MediaPlayerElement _videoPlayer;
         public MediaPlayerElement VideoPlayer
@@ -38,6 +42,7 @@ namespace MediaPlayer.ViewModels
 
         public MediaPlayerVM(MediaPlayerElement videoPlayer, Image imagePlayer)
         {
+
             VideoPlayer = videoPlayer;
             ImagePlayer = imagePlayer;
 
@@ -46,6 +51,7 @@ namespace MediaPlayer.ViewModels
 
         private async void PlayerOnLaunch()
         {
+            _imagePlaylist = new List<StorageFile>();
             _playlist = new MediaPlaybackList();
             VideoPlayer.Source = _playlist;
 
@@ -63,8 +69,14 @@ namespace MediaPlayer.ViewModels
                 if (_newItemsDownloaded)
                     await RetrieveAndPlayMedia();
                 else
+                {
                     await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
-                        () => VideoPlayer.Source = _playlist);
+                        async () =>
+                        {
+                            await PlayPictures();
+                            VideoPlayer.Source = _playlist;
+                        });
+                }
             }
             catch (Exception e)
             {
@@ -112,7 +124,7 @@ namespace MediaPlayer.ViewModels
             {
                 await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
                  {
-                     await RetrievePlayList();
+                     await RetrievePlayLists();
                      if (_playlist.Items.Count > 0)
                          VideoPlayer.MediaPlayer.Play();
                  });
@@ -123,18 +135,51 @@ namespace MediaPlayer.ViewModels
             }
         }
 
-        private async Task RetrievePlayList()
+        private async Task PlayPictures()
+        {
+            DisplayImagePlayer(true);
+            foreach (var storageFile in _imagePlaylist)
+            {
+                _imagePlayer.Source = await LoadImage(storageFile);
+                await Task.Delay(Dependencies.SettingsManager.SettingsState.ImagesDisplayTime * 1000);
+            }
+            DisplayImagePlayer(false);
+        }
+
+        private void DisplayImagePlayer(bool diplayImagePlayer)
+        {
+            if (diplayImagePlayer)
+            {
+                VideoPlayer.IsFullWindow = false;
+                ImagePlayer.Visibility = Visibility.Visible;
+                VideoPlayer.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                VideoPlayer.IsFullWindow = true;
+                ImagePlayer.Visibility = Visibility.Collapsed;
+                VideoPlayer.Visibility = Visibility.Visible;
+            }
+        }
+
+        private async Task RetrievePlayLists()
         {
             _playlist.Items.Clear();
+            _imagePlaylist.Clear();
 
             var directoryFiles = await ApplicationData.Current.LocalFolder.GetFilesAsync();
 
-            var filteredList = directoryFiles.ToList()
+            var videosList = directoryFiles.ToList()
                 .Where(f => !Dependencies.ContentManager.DeletionQueue.Contains(f.Name)
                 && IsVideoFile(f) && f.Name != "Settings.json")
                 .ToList();
 
-            filteredList.ForEach(x => _playlist.Items.Add(new MediaPlaybackItem(MediaSource.CreateFromStorageFile(x))));
+            _imagePlaylist = directoryFiles.ToList()
+                .Where(f => !Dependencies.ContentManager.DeletionQueue.Contains(f.Name)
+                            && !IsVideoFile(f) && f.Name != "Settings.json")
+                .ToList();
+
+            videosList.ForEach(x => _playlist.Items.Add(new MediaPlaybackItem(MediaSource.CreateFromStorageFile(x))));
 
             _newItemsDownloaded = false;
         }

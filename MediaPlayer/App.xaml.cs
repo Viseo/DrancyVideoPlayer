@@ -15,10 +15,10 @@ namespace MediaPlayer
     sealed partial class App : Application
     {
         private DispatcherTimer _dispatcherTimer;
-        private SettingsManager settingsManager;
-        private PlanningManager planningManager;
-        private ContentManager contentManager;
-        private HttpRequestManager httpRequestManager;
+        private SettingsManager _settingsManager;
+        private PlanningManager _planningManager;
+        private ContentManager _contentManager;
+        private HttpRequestManager _httpRequestManager;
 
         public App()
         {
@@ -36,10 +36,10 @@ namespace MediaPlayer
 
         private void InitDependencies()
         {
-            Dependencies.SettingsManager = settingsManager = new SettingsManager();
-            Dependencies.PlanningManager = planningManager = new PlanningManager();
-            Dependencies.ContentManager = contentManager = new ContentManager();
-            Dependencies.HttpRequestManager = httpRequestManager = new HttpRequestManager(Dependencies.SettingsManager.SettingsState.CalledURL);
+            Dependencies.SettingsManager = _settingsManager = new SettingsManager();
+            Dependencies.PlanningManager = _planningManager = new PlanningManager();
+            Dependencies.ContentManager = _contentManager = new ContentManager();
+            Dependencies.HttpRequestManager = _httpRequestManager = new HttpRequestManager(Dependencies.SettingsManager.SettingsState.CalledURL);
         }
 
         protected override void OnLaunched(LaunchActivatedEventArgs e)
@@ -80,14 +80,14 @@ namespace MediaPlayer
 
         private Task CleanTmpFolder()
         {
-            return contentManager.CleanTemporaryFolder();
+            return _contentManager.CleanTemporaryFolder();
         }
 
         private async Task<bool> DoesValidSettingsExist()
         {
-            if (await settingsManager.IsSettingsFileExist()
-                && settingsManager.SettingsState.AreNumericFieldsValid()
-                && settingsManager.SettingsState.AreNonNumericFieldsValid())
+            if (await _settingsManager.IsSettingsFileExist()
+                && _settingsManager.SettingsState.AreNumericFieldsValid()
+                && _settingsManager.SettingsState.AreNonNumericFieldsValid())
                 return true;
             return false;
         }
@@ -98,7 +98,7 @@ namespace MediaPlayer
             {
                 await CleanTmpFolder();
                 await DoBackgroundWork();
-                contentManager.ManageDownloadQueue(httpRequestManager);
+                _contentManager.ManageDownloadQueue(_httpRequestManager);
                 SetupTimerRetrievingPlaylist();
             }
             catch (Exception ex)
@@ -111,7 +111,7 @@ namespace MediaPlayer
         {
             _dispatcherTimer = new DispatcherTimer();
             _dispatcherTimer.Tick += RetrievePlaylistTick;
-            _dispatcherTimer.Interval = new TimeSpan(0, settingsManager.SettingsState.CronUpdateTime, 0);
+            _dispatcherTimer.Interval = new TimeSpan(0, _settingsManager.SettingsState.CronUpdateTime, 0);
             _dispatcherTimer.Start();
         }
 
@@ -124,18 +124,18 @@ namespace MediaPlayer
         {
             try
             {
-                var settings = settingsManager.SettingsState;
-                await planningManager
+                var settings = _settingsManager.SettingsState;
+                await _planningManager
                     .RetrievePlaylist(settings.ScreenId
                         , settings.SecurityKey
                         , settings.DefaultClipURL
-                        , httpRequestManager);
+                        , _httpRequestManager);
 
-                await contentManager.CheckIfPlaylistItemsAreDownloaded(planningManager.PlayListState.PlaylistItems);
+                await _contentManager.CheckIfPlaylistItemsAreDownloaded(_planningManager.PlayListState.PlaylistItems);
 
-                await contentManager.FillDeletionQueue(planningManager.PlayListState.PlaylistItems);
+                //await _contentManager.FillDeletionQueue(_planningManager.PlayListState.PlaylistItems);
 
-                contentManager.FillDownloadQueue(planningManager.PlayListState.PlaylistItems);
+                _contentManager.FillDownloadQueue(_planningManager.PlayListState.PlaylistItems);
             }
             catch (Exception)
             {
