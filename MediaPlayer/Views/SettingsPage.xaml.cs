@@ -8,7 +8,7 @@ namespace MediaPlayer.Views
 {
     public sealed partial class SettingsPage : Page
     {
-        private SettingsPageVM ViewModel { get; set; }
+        private SettingsPageVM ViewModel { get; }
 
         public SettingsPage()
         {
@@ -32,8 +32,6 @@ namespace MediaPlayer.Views
 
         private void MediaPlayerNavigationButtonClicked(object sender, RoutedEventArgs e)
         {
-            //if (this.Frame.CanGoBack)
-            //    this.Frame.GoBack();
             this.Frame.Navigate(typeof(MediaPlayer));
         }
     }

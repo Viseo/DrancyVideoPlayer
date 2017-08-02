@@ -124,7 +124,7 @@ namespace MediaPlayer.Managers
                     while (DeletionQueue.Any())
                     {
                         var files = await ApplicationData.Current.LocalFolder.GetFilesAsync();
-                        bool settingsFileAndOneVideoExists = files.Count > 2;
+                        var settingsFileAndOneVideoExists = files.Count > 2;
                         if (DeletionQueue.TryDequeue(out string fileToDelete) && settingsFileAndOneVideoExists)
                             await DeleteFile(fileToDelete);
                     }

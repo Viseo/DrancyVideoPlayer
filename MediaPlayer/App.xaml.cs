@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
+using Windows.ApplicationModel.Core;
+using Windows.UI.Core;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -99,7 +101,7 @@ namespace MediaPlayer
                 await CleanTmpFolder();
                 await DoBackgroundWork();
                 _contentManager.ManageDownloadQueue(_httpRequestManager);
-                SetupTimerRetrievingPlaylist();
+                await SetupTimerRetrievingPlaylist();
             }
             catch (Exception ex)
             {
@@ -107,12 +109,16 @@ namespace MediaPlayer
             }
         }
 
-        private void SetupTimerRetrievingPlaylist()
+        private async Task SetupTimerRetrievingPlaylist()
         {
-            _dispatcherTimer = new DispatcherTimer();
-            _dispatcherTimer.Tick += RetrievePlaylistTick;
-            _dispatcherTimer.Interval = new TimeSpan(0, _settingsManager.SettingsState.CronUpdateTime, 0);
-            _dispatcherTimer.Start();
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
+                () =>
+               {
+                   _dispatcherTimer = new DispatcherTimer();
+                   _dispatcherTimer.Tick += RetrievePlaylistTick;
+                   _dispatcherTimer.Interval = new TimeSpan(0, _settingsManager.SettingsState.CronUpdateTime, 0);
+                   _dispatcherTimer.Start();
+               });
         }
 
         private void RetrievePlaylistTick(object sender, object e)
@@ -133,7 +139,7 @@ namespace MediaPlayer
 
                 await _contentManager.CheckIfPlaylistItemsAreDownloaded(_planningManager.PlayListState.PlaylistItems);
 
-                //await _contentManager.FillDeletionQueue(_planningManager.PlayListState.PlaylistItems);
+                await _contentManager.FillDeletionQueue(_planningManager.PlayListState.PlaylistItems);
 
                 _contentManager.FillDownloadQueue(_planningManager.PlayListState.PlaylistItems);
             }
