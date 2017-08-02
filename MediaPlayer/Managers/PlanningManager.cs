@@ -39,7 +39,7 @@ namespace MediaPlayer.Managers
                     {"screenName", screenId},
                     {"code", securityKey}
                 };
-                var route = httpRequestManager.GenerateUriWithParams("/get-test", requestParams);
+                var route = httpRequestManager.GenerateUriWithParams("/get-playlist", requestParams);
                 var response = await httpRequestManager.Get<JToken>(route);
                 DeserializeResponseAsPlaylist(response, defaultClipUrl);
             }
